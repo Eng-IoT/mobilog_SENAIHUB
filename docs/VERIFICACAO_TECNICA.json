@@ -1,0 +1,48 @@
+{
+  "projeto": "MobiLog SENAI Hub",
+  "edicao": "R01",
+  "data": "2026-10-16",
+  "codigo": {
+    "testes": 27,
+    "aprovados": 27,
+    "falhas": 0,
+    "typecheck": "aprovado",
+    "build_producao": "aprovado",
+    "next": "16.3.8",
+    "audit_producao_vulnerabilidades": 0,
+    "demonstracao_html": "gerada; recursos incorporados e renderização estática conferidos; não ensaiada em navegador real",
+    "runtime_verificado": "Node.js 24.19.0; projeto configurado para Node.js 22.x na Vercel e no CI"
+  },
+  "supabase": {
+    "projeto": "agpvqaktfpeoqthgdbwi",
+    "regiao": "sa-east-1",
+    "tabelas_com_rls": 4,
+    "politicas": 4,
+    "funcoes_de_servidor": 3,
+    "realtime_estado": true,
+    "grant_update_estado_navegador": false,
+    "grant_funcao_privilegiada_navegador": false,
+    "apontamentos_seguranca": 0,
+    "equipes_criadas": 0
+  },
+  "vercel": {
+    "publicado": false,
+    "motivo": "API recusou criação com 403 de autorização no escopo da conta; seguir importação manual"
+  },
+  "github": {
+    "repositorio": "Eng-IoT/mobilog_SENAIHUB",
+    "criado_pelo_usuario": true,
+    "enviado": true,
+    "conta_conectada": "Eng-IoT",
+    "permissao_push": true,
+    "verificado_em": "2026-10-17",
+    "entrega": "73 arquivos versionados; inclui manuais PDF e Word mais recentes"
+  },
+  "pendencias": [
+    "Configurar a chave privada diretamente na Vercel",
+    "Importar e publicar pela conta autorizada",
+    "Criar primeiro acesso e equipes",
+    "Executar aceite com contas e aparelhos reais"
+  ],
+  "documentacao": "Guias editáveis, guia técnico PDF e manual de alunos e docentes em PDF e Word, com 12 páginas; plano até 26/10/2026"
+}

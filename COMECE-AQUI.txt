@@ -1,0 +1,31 @@
+MOBILOG - SENAI HUB - ENTREGA R01
+Preparação da turma até 26/10/2026
+
+1. PARA TREINAR AGORA
+Abra dist/MobiLog-Demonstracao.html em um navegador no computador.
+É uma simulação local, com dados fictícios. Não sincroniza entre aparelhos.
+
+2. PARA ENTENDER E PREPARAR AS AULAS
+Abra docs/MobiLog-Manual-Alunos-e-Docentes-Mundo-SENAI.pdf.
+A versão Word editável está na mesma pasta.
+Para a implantação técnica, consulte docs/IMPLANTACAO.md.
+Os arquivos .md em docs são editáveis e trazem guias, cronograma e fichas.
+
+3. PARA USAR CONTAS INDIVIDUAIS E ATUALIZAR OS SMARTPHONES
+O banco exclusivo Supabase já foi criado e recebeu a estrutura.
+O código está em https://github.com/Eng-IoT/mobilog_SENAIHUB.
+Importe esse repositório pela sua conta Vercel e configure as três
+variáveis descritas em docs/IMPLANTACAO.md.
+As duas públicas estão em .env.example; a chave privada deve ser obtida
+no painel Supabase e colocada diretamente no ambiente da Vercel.
+
+4. O QUE ESTÁ PENDENTE
+A publicação automática foi recusada pela Vercel com erro 403 de permissão.
+O código e os manuais estão no GitHub; esta versão ainda não foi publicada na Vercel.
+Depois da importação, execute a lista de ensaio com dois celulares e um PC.
+
+Os 27 testes automatizados e a compilação de produção passaram.
+O ensaio com contas reais e smartphones ainda precisa ser feito.
+Não execute novamente o SQL de instalação no banco já preparado.
+
+Leia README.md para os detalhes e os comandos de desenvolvimento.
