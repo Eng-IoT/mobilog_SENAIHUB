@@ -40,9 +40,13 @@ Não há senhas prontas nem conta compartilhada. O pacote não contém a chave p
 - QR do pedido na versão publicada, relatório CSV e cópia JSON do estado.
 - PWA para a tela inicial, layout para smartphone e demonstração local separada dos dados em nuvem.
 
+## Apresentação na TV
+
+Em **Pedidos**, abra o móvel e selecione **Acompanhar na TV**. A apresentação abre em uma nova aba, com modelo 3D ilustrativo girando lentamente, etapa atual em letras grandes, jornada completa e botão de tela cheia. A tela consulta os pedidos existentes e mantém o acesso pela equipe. Veja o [guia de acompanhamento na TV](docs/ACOMPANHAMENTO_TV.md).
+
 ## Tecnologia
 
-Node.js 22.13+ da linha 22; Next.js 16, React 19, TypeScript, Supabase PostgreSQL/Auth/Realtime e Vercel. Bibliotecas fixadas no `package-lock.json`. Não depende de Cloudflare Workers, D1 ou Vinext.
+Node.js 22.13+ da linha 22; Next.js 16, React 19, TypeScript, Three.js, Supabase PostgreSQL/Auth/Realtime e Vercel. Bibliotecas fixadas no `package-lock.json`. Não depende de Cloudflare Workers, D1 ou Vinext.
 
 O banco mantém equipes, associações e um estado versionado por equipe. A API valida a conta, a função e a equipe explícita em cada operação. Alterações usam comparação da revisão para lidar com confirmações simultâneas. O navegador não pode gravar as tabelas diretamente nem chamar as funções privilegiadas.
 

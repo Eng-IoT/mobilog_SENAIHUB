@@ -6,7 +6,7 @@ import {browserClient} from "@/lib/supabase/browser";
 export type PendingRecord={command:Command;status:"pending"|"blocked";error?:string};
 export type ActionResult={status:"synced"|"pending"|"blocked";message:string};
 function valid(value:unknown):value is Snapshot{const s=value as Snapshot;return !!s&&Array.isArray(s.state?.orders)&&Array.isArray(s.state?.materials)&&Array.isArray(s.state?.events)&&typeof s.revision==="number";}
-export function useProduction(account:Account) {
+export function useProduction(account:Account,{readOnly=false}:{readOnly?:boolean}={}) {
   const demo=account.mode==="demo";
   const scope="mobilog-r01:"+account.userId+":"+account.workspaceId;
   const queueKey=scope+":queue",cacheKey=scope+":cache";
@@ -27,6 +27,7 @@ export function useProduction(account:Account) {
     }catch{if(alive.current)setConnection("offline");}
   },[demo,update,account.workspaceId]);
   const flush=useCallback(async(targetId?:string):Promise<ActionResult>=>{
+    if(readOnly)return {status:"blocked",message:"Esta tela permite apenas acompanhamento."};
     if(busyRef.current)return {status:"pending",message:"A sincronização já está em andamento."};
     if(!navigator.onLine){setConnection("offline");return {status:"pending",message:"Tentativa guardada neste aparelho. Aguarde a conexão para confirmar."};}
     busyRef.current=true;setBusy(true);let result:ActionResult={status:"synced",message:"Registros sincronizados."};
@@ -50,8 +51,9 @@ export function useProduction(account:Account) {
       if(targetId){const remaining=queue().find(record=>record.command.eventId===targetId);if(remaining)result={status:remaining.status==="blocked"?"blocked":"pending",message:remaining.error||"Tentativa guardada neste aparelho; ainda não confirmada na nuvem."};else result={status:"synced",message:"Registro confirmado. O painel da equipe receberá a atualização."};}
     }finally{busyRef.current=false;if(alive.current)setBusy(false);}
     return result;
-  },[queue,saveQueue,update,account.workspaceId]);
+  },[queue,saveQueue,update,account.workspaceId,readOnly]);
   const run=useCallback(async(partial:Omit<Command,"eventId">):Promise<ActionResult>=>{
+    if(readOnly)return {status:"blocked",message:"Esta tela permite apenas acompanhamento."};
     const command={...partial,eventId:crypto.randomUUID()};
     if(demo){
       try{const old=snapshotRef.current!;const {state}=applyCommand(old.state,command,new Date().toISOString(),{userId:"demo",name:"Demonstração local",role:"admin"});update({state,revision:old.revision+1,updatedAt:new Date().toISOString()});return {status:"synced",message:"Registro demonstrativo salvo neste navegador."};}
@@ -59,15 +61,15 @@ export function useProduction(account:Account) {
     }
     if(!saveQueue([...queue(),{command,status:"pending"}]))return {status:"blocked",message:"Não foi possível guardar a tentativa no aparelho."};
     return flush(command.eventId);
-  },[demo,flush,queue,saveQueue,update]);
-  const retry=useCallback(async()=>{saveQueue(queue().map(item=>({command:item.command,status:"pending"})));return flush();},[queue,saveQueue,flush]);
-  const dismiss=useCallback((id:string)=>{saveQueue(queue().filter(item=>item.command.eventId!==id));},[queue,saveQueue]);
-  const resetDemo=useCallback(()=>{if(!demo)return;const old=snapshotRef.current;update({state:createDemoState(),revision:(old?.revision||0)+1,updatedAt:new Date().toISOString()});},[demo,update,account.workspaceId]);
+  },[demo,flush,queue,saveQueue,update,readOnly]);
+  const retry=useCallback(async()=>{if(readOnly)return {status:"blocked" as const,message:"Esta tela permite apenas acompanhamento."};saveQueue(queue().map(item=>({command:item.command,status:"pending"})));return flush();},[queue,saveQueue,flush,readOnly]);
+  const dismiss=useCallback((id:string)=>{if(!readOnly)saveQueue(queue().filter(item=>item.command.eventId!==id));},[queue,saveQueue,readOnly]);
+  const resetDemo=useCallback(()=>{if(!demo||readOnly)return;const old=snapshotRef.current;update({state:createDemoState(),revision:(old?.revision||0)+1,updatedAt:new Date().toISOString()});},[demo,update,readOnly]);
   useEffect(()=>{
     alive.current=true;
     setPending(queue());
     try{const cached:unknown=JSON.parse(localStorage.getItem(cacheKey)||"null");if(valid(cached))update(cached);}catch{}
-    const resume=()=>{void refresh().then(()=>flush());};
+    const resume=()=>{void refresh().then(()=>{if(!readOnly)void flush();});};
     if(!demo)resume();
     const timer=setInterval(()=>{if(!demo&&!document.hidden)resume();},6000);
     const storage=(event:StorageEvent)=>{if(event.key===queueKey)setPending(queue());if(demo&&event.key===cacheKey&&event.newValue){try{const value:unknown=JSON.parse(event.newValue);if(valid(value))update(value);}catch{}}};
@@ -77,6 +79,6 @@ export function useProduction(account:Account) {
     if(!demo){const client=browserClient();if(client){const channel=client.channel("mobilog-"+account.workspaceId).on("postgres_changes",{event:"UPDATE",schema:"public",table:"mobilog_states",filter:"workspace_id=eq."+account.workspaceId},()=>void refresh()).subscribe();stopRealtime=()=>{void client.removeChannel(channel);};}}
     if("serviceWorker"in navigator&&window.location.protocol!=="file:")void navigator.serviceWorker.register("/sw.js").catch(()=>{});
     return()=>{alive.current=false;clearInterval(timer);stopRealtime();window.removeEventListener("storage",storage);window.removeEventListener("online",visible);window.removeEventListener("offline",visible);document.removeEventListener("visibilitychange",visible);};
-  },[account.workspaceId,demo,queue,queueKey,cacheKey,update,refresh,flush]);
+  },[account.workspaceId,demo,queue,queueKey,cacheKey,update,refresh,flush,readOnly]);
   return {state:snapshot?.state||null,revision:snapshot?.revision,connection,syncedAt,pending,busy,storageError,run,refresh,dismiss,retry,resetDemo};
 }

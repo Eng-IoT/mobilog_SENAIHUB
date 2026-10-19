@@ -1,0 +1,81 @@
+/* SENAI Hub: defined edges, generous corners and clearer hierarchy. */
+:root { --line: #dce3ec; --radius: 18px; --background: #f2f5f9; }
+.sidebar { border-right: 1px solid #314b70; box-shadow: 8px 0 32px #142d4c08; }
+.sidebar-logo { padding: 14px 26px; }
+.sidebar .nav-item { border: 1px solid transparent; border-radius: 11px; }
+.sidebar .nav-item.active { background: #ffffff14; border-color: #ffffff16; box-shadow: inset 0 1px #ffffff08; }
+.topbar { border-bottom-color: #dce3ec; box-shadow: 0 3px 16px #193b7405; }
+.main-content { padding-top: 28px; }
+.page-heading h1 { font-size: clamp(27px, 2.3vw, 35px); letter-spacing: -.045em; }
+.page-heading p { font-size: 13px; line-height: 1.7; }
+.page-eyebrow { color: #536784; letter-spacing: .13em; }
+.account-strip { border: 1px solid #dce4ef; border-radius: 11px; background: #ffffffb8; }
+.panel, .stat-card, .kanban-card, .worker-order, .team-card, .onboarding-box {
+  border-color: #d9e2ed;
+  box-shadow: 0 1px 2px #12345b04, 0 7px 24px #12345b05;
+}
+.panel-heading { border-bottom: 1px solid #edf1f6; margin-bottom: 0; }
+.panel-heading h2 { font-size: 16px; }
+.panel-heading p { font-size: 11px; }
+.panel-heading + .table-scroll .orders-table th { border-top: 0; }
+.stat-card { border-radius: 17px; min-height: 150px; padding: 20px; }
+.stat-label { font-size: 12px; }
+.stat-card > strong { font-size: 36px; color: #193b74; }
+.stat-detail { font-size: 10px; }
+.stat-card:hover { border-color: #a9bedb; box-shadow: 0 5px 20px #193b7410; transform: translateY(-2px); }
+.stat-icon { border: 1px solid #193b7408; border-radius: 12px; width: 40px; height: 40px; }
+.btn { border-radius: 10px; min-height: 40px; }
+.btn.primary { box-shadow: 0 3px 0 #9e351819, inset 0 1px #ffffff24; }
+.btn.navy { border-color: #173768; box-shadow: inset 0 1px #ffffff18, 0 3px 8px #193b7410; }
+.btn.secondary { border-color: #d2dce9; box-shadow: 0 1px 2px #193b7405; }
+.search-box { border-color: #d6e0ec; border-radius: 11px; min-height: 41px; box-shadow: 0 1px 3px #193b7404; }
+.search-box input { font-size: 12px; }
+.orders-table th { background: #f6f8fc; color: #51627c; font-size: 10px; }
+.orders-table tbody tr:hover { background: #f8fafd; }
+.order-cell strong { font-size: 12px; }
+.order-cell em { font-size: 10px; }
+.order-cell small { font-size: 10px; color: #687b94; }
+.furniture-thumb { border: 1px solid #e9decd; border-radius: 11px; background: linear-gradient(145deg, #faf7f0, #eee5d6); }
+.stage-name { font-size: 11px; }
+.badge { border-radius: 6px; padding: 4px 7px; }
+.table-actions .icon-btn { width: 28px; height: 30px; border-radius: 8px; }
+.table-actions .tv-table-link { color: #244b86; background: #edf3fb; margin-right: 4px; border: 1px solid #dce7f6; }
+.connected-card { border-color: #d9cab5; border-radius: 18px; background: radial-gradient(ellipse at 90% 0%, #fffaf1, transparent 70%), #f1e7d8; box-shadow: 0 5px 20px #78552d09; }
+.connected-card h2 { color: #513f2b; }
+.connected-card > p { font-size: 11px; }
+.stage-overview { padding-top: 18px; }
+.stage-overview-icon { border: 1px solid #dfe6ef; border-radius: 13px; }
+.stage-overview button strong { font-size: 10px; }
+.kanban-card { border-radius: 16px; }
+.kanban-card:hover { border-color: #adbfda; box-shadow: 0 7px 22px #193b7410; }
+.worker-order { border-radius: 12px; }
+.worker-order.selected { border-color: #95afd2; box-shadow: inset 3px 0 #244b86, 0 4px 14px #193b7408; }
+.field input, .field select, .field textarea { border-radius: 9px; }
+.modal { border: 1px solid #d4deeb; box-shadow: 0 24px 100px #112b5529; }
+.modal:not(.drawer) { border-radius: 22px; }
+.modal-heading { border-bottom-color: #e0e7f1; }
+.auth-card { border-color: #d2deed; border-radius: 22px; box-shadow: 0 16px 65px #193b7410, 0 1px 3px #193b7408; }
+.tracking-launch { margin: 18px 0 25px; min-height: 47px; font-size: 13px; }
+.tracking-launch svg:last-child { margin-left: auto; }
+
+@media (max-width: 1100px) {
+  .stat-card { padding: 17px; }
+  .stat-label { font-size: 11px; }
+  .stat-detail { font-size: 9px; }
+}
+@media (max-width: 700px) {
+  .main-content { padding-top: 20px; }
+  .page-heading h1 { font-size: 27px; }
+  .page-heading p { font-size: 12px; }
+  .stat-card { min-height: 137px; padding: 16px; border-radius: 15px; }
+  .stat-card > strong { font-size: 32px; }
+  .panel { border-radius: 15px; }
+  .panel-heading h2 { font-size: 15px; }
+  .account-strip { padding: 12px; }
+  .btn { min-height: 42px; }
+  .tracking-launch { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}

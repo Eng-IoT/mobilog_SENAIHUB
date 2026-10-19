@@ -1,13 +1,18 @@
 "use client";
-import {useCallback,useEffect,useState} from "react";
+import {lazy,Suspense,useCallback,useEffect,useState} from "react";
 import {Cloud,ArrowRight,Users,KeyRound,LogIn,Plus,ArrowLeft,RefreshCw,BookOpen} from "lucide-react";
 import ProductionApp from "./production-app";
 import type {Account} from "@/lib/access";
 import {Modal} from "./production-ui";
+import {trackingAccount} from "@/lib/tracking";
+
+const ProductTracking=lazy(()=>import("./product-tracking"));
 
 const DEMO:Account={userId:"demo",name:"Demonstração local",email:"",role:"admin",workspaceId:"local",workspaceName:"Oficina de treinamento",mustChangePassword:false,workspaces:[],mode:"demo"};
 async function post(path:string,body:unknown){const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw new Error(data.error||"Não foi possível concluir.");return data;}
 export default function AppGate({demo=false}:{demo?:boolean}) {
+  const [tracking,setTracking]=useState<{orderId:string;workspaceId?:string}|null>(null);
+  useEffect(()=>{const params=new URLSearchParams(window.location.search);if(params.get("view")==="acompanhamento")setTracking({orderId:params.get("order")||"",workspaceId:params.get("equipe")||undefined});},[]);
   const [account,setAccount]=useState<Account|null>(demo?DEMO:null),[loading,setLoading]=useState(!demo),[cloudReady,setCloudReady]=useState(true),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   const [signup,setSignup]=useState(false),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[name,setName]=useState(""),[notice,setNotice]=useState("");
   const [groupName,setGroupName]=useState("Logística · Mundo SENAI"),[code,setCode]=useState(""),[samples,setSamples]=useState(true),[training,setTraining]=useState(true),[groupModal,setGroupModal]=useState(false),[createdCode,setCreatedCode]=useState("");
@@ -23,6 +28,11 @@ export default function AppGate({demo=false}:{demo?:boolean}) {
   async function createGroup(){const data=await post("/api/groups",{action:"create",name:groupName,displayName:name,samples,training});setCreatedCode(data.code);setGroupModal(false);await reload();}
   const groupsForm=<div className="onboarding-grid"><form className="onboarding-box" onSubmit={event=>{event.preventDefault();void act(createGroup);}}><span className="auth-icon"><Plus size={23}/></span><h2>Criar uma equipe</h2><p>Para o instrutor organizar a turma ou a oficina.</p><label className="field">Seu nome<input required minLength={2} maxLength={100} value={name} onChange={e=>setName(e.target.value)}/></label><label className="field">Nome da equipe<input required minLength={2} maxLength={100} value={groupName} onChange={e=>setGroupName(e.target.value)}/></label><label className="checkbox-line"><input type="checkbox" checked={samples} onChange={e=>setSamples(e.target.checked)}/>Incluir pedidos fictícios para treinamento</label><label className="checkbox-line"><input type="checkbox" checked={training} onChange={e=>setTraining(e.target.checked)}/>Identificar como ambiente de treinamento</label><button className="btn primary full" disabled={busy}><Plus size={17}/>Criar equipe</button></form><form className="onboarding-box" onSubmit={event=>{event.preventDefault();void act(async()=>{await post("/api/groups",{action:"join",code,displayName:name});setNotice("Solicitação enviada. Aguarde a liberação do instrutor.");await reload();});}}><span className="auth-icon"><Users size={23}/></span><h2>Entrar em uma equipe</h2><p>Para o aluno ou profissional usar o código recebido do instrutor.</p><label className="field">Seu nome<input required minLength={2} maxLength={100} value={name} onChange={e=>setName(e.target.value)}/></label><label className="field">Código da equipe<input required minLength={6} maxLength={40} value={code} onChange={e=>setCode(e.target.value.toUpperCase())} placeholder="Código fornecido pelo instrutor"/></label><button className="btn primary full" disabled={busy}>Solicitar acesso <ArrowRight size={17}/></button>{account?.workspaces.some(g=>!g.active)&&<div className="pending-admissions">{account.workspaces.filter(g=>!g.active).map(g=><p key={g.id}>Aguardando liberação: <strong>{g.name}</strong></p>)}<button type="button" className="btn secondary full" onClick={()=>void reload()}><RefreshCw size={15}/>Consultar liberação</button></div>}</form></div>;
   if(loading)return <div className="auth-shell"><div className="auth-card"><img src="/logo-senai-hub.webp" alt="SENAI Hub"/><Cloud size={28}/><h1>Conectando ao MobiLog</h1><p>Conferindo sua conta e a equipe.</p></div></div>;
+  if(account?.workspaceId&&!account.mustChangePassword&&tracking){
+    const selected=trackingAccount(account,tracking.workspaceId);
+    if(!selected)return <div className="auth-shell"><main className="auth-card"><img src="/logo-senai-hub.webp" alt="SENAI Hub"/><h1>Equipe indisponível</h1><p className="form-error" role="alert">Sua conta não tem acesso ativo à equipe deste acompanhamento. Entre com uma conta autorizada pelo instrutor.</p><a className="btn navy full" href="?">Voltar ao painel</a></main></div>;
+    return <Suspense fallback={<div className="auth-shell"><div className="auth-card"><Cloud size={28}/><h1>Abrindo o acompanhamento</h1><p>Preparando a apresentação do produto.</p></div></div>}><ProductTracking key={selected.userId+selected.workspaceId+selected.mode} account={selected} orderId={tracking.orderId}/></Suspense>;
+  }
   if(account?.workspaceId&&!account.mustChangePassword)return <>
     <ProductionApp key={account.userId+account.workspaceId+account.mode} account={account} onLogout={()=>void logout()} onSwitchWorkspace={()=>setGroupModal(true)}/>
     {error&&!groupModal&&<div className="toast" role="alert"><span>{error}</span><button onClick={()=>setError("")} aria-label="Fechar aviso">×</button></div>}
