@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./refinements.css";
 import "./tracking.css";
+import "./passport.css";
 
 export const metadata: Metadata = {
   title: "MobiLog · SENAI Hub",

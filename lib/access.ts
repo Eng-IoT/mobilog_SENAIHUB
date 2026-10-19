@@ -43,7 +43,7 @@ export function authorizeCommand(state: ProductionState, command: Command, ident
   if (identity.role === "viewer") throw new AccessError("Sua conta permite somente consulta.");
   const isAdmin = identity.role === "admin";
   if (!isAdmin && command.actorId !== actorFor(identity.role)) throw new AccessError("Você só pode registrar atividades da sua função.");
-  if (["create-order", "stock-receive"].includes(command.kind) && !isManagement(identity.role)) throw new AccessError("Esta operação pertence à Logística.");
+  if (["create-order", "stock-receive", "update-product-details"].includes(command.kind) && !isManagement(identity.role)) throw new AccessError("Esta operação pertence à Logística.");
   if (command.kind === "stage-reassign" && !isAdmin) throw new AccessError("Apenas o instrutor pode trocar o responsável.");
   const order = state.orders.find(o => o.id === command.orderId);
   const stage = order?.stages.find(s => s.stageId === command.stageId);

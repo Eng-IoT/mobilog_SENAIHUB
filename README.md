@@ -37,12 +37,16 @@ Não há senhas prontas nem conta compartilhada. O pacote não contém a chave p
 - Instrutor cadastra acessos, aprova solicitações, ajusta funções, suspende membros e reatribui a etapa atual.
 - Histórico com autoria validada pelo servidor; reenvio da mesma tentativa não repete a baixa de material.
 - Pendências locais sem conexão, reenvio com o aplicativo aberto e atualização por Realtime com consulta de apoio a cada 6 segundos.
-- QR do pedido na versão publicada, relatório CSV e cópia JSON do estado.
+- QR exclusivo por peça, ficha pública de rastreabilidade sem login, relatório CSV e cópia JSON do estado.
 - PWA para a tela inicial, layout para smartphone e demonstração local separada dos dados em nuvem.
 
 ## Apresentação na TV
 
 Em **Pedidos**, abra o móvel e selecione **Acompanhar na TV**. A apresentação abre em uma nova aba, com modelo 3D ilustrativo girando lentamente, etapa atual em letras grandes, jornada completa e botão de tela cheia. A tela consulta os pedidos existentes e mantém o acesso pela equipe. Veja o [guia de acompanhamento na TV](docs/ACOMPANHAMENTO_TV.md).
+
+## Identidade de cada peça
+
+Em **Pedidos → Ficha QR**, selecione a unidade e imprima a etiqueta. O visitante abre uma ficha com materiais, características, datas, tempos e histórico, sem login. A Logística e o docente podem usar **Completar dados do produto** para informar madeira, origem, medidas, acabamento e cuidados. Veja o [guia de identidade do produto](docs/IDENTIDADE_DO_PRODUTO.md). Etiquetas do modelo anterior precisam ser reimpressas.
 
 ## Tecnologia
 
@@ -83,7 +87,8 @@ npm run demo:build
 | Caminho | Finalidade |
 | --- | --- |
 | `app/`, `components/`, `hooks/`, `lib/` | Interface, API, contas e regras |
-| `database/01_estrutura.sql` | Instalação em outro projeto Supabase vazio |
+| `database/01_estrutura.sql` | Estrutura inicial em um projeto Supabase vazio |
+| `database/02_rastreabilidade.sql` | Identidades permanentes dos produtos e criação automática por unidade |
 | `public/` | Logo fornecida, ícones, manifesto e service worker |
 | `dist/MobiLog-Demonstracao.html` | Treinamento local independente |
 | `docs/IMPLANTACAO.md` | GitHub, Vercel, variáveis e primeiro acesso |

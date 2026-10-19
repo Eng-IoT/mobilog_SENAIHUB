@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X, QrCode, Copy, Printer, Cloud, Check, CircleCheck, Pause } from "lucide-react";
+import { X, QrCode, Copy, Printer, Cloud, Check, CircleCheck, Pause, ArrowUpRight, BookOpen } from "lucide-react";
 import { activeStage, isLate, progress, STAGES, TEAM, type Order } from "@/lib/production";
+import type { Account } from "@/lib/access";
+import { passportHref, passportSerial, type PassportIdentity } from "@/lib/product-passport";
 
 export function Modal({ title, subtitle, children, onClose, drawer = false, className = "" }: { title: string; subtitle?: string; children: ReactNode; onClose: () => void; drawer?: boolean; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -47,18 +49,37 @@ export function formatDate(value: string) { return new Date(value + "T12:00:00Z"
 export function formatDateTime(value: string) { return new Date(value).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Rio_Branco" }); }
 export function qty(value: number) { return value.toLocaleString("pt-BR", { maximumFractionDigits: 3 }); }
 export function Empty({ children }: { children: ReactNode }) { return <div className="empty-state"><CircleCheck size={28}/><p>{children}</p></div>; }
-export function QRModal({ order, onClose, onMessage }: { order: Order; onClose: () => void; onMessage: (message: string) => void }) {
+export function QRModal({ order, account, onClose, onMessage, onEdit }: { order: Order; account: Account; onClose: () => void; onMessage: (message: string) => void; onEdit?: () => void }) {
   const [dataUrl, setDataUrl] = useState(""); const [url, setUrl] = useState(""); const [error, setError] = useState("");
+  const [identities, setIdentities] = useState<PassportIdentity[]>([]);
+  const [unit, setUnit] = useState(1);
   useEffect(() => {
-    if(window.location.protocol==="file:"){setError("O QR entre aparelhos estará disponível na versão publicada. Neste arquivo, abra Pedidos e escolha a atividade.");return;}
-    const path=window.location.pathname==="/demo"?"/demo":"/";
-    const value = window.location.origin + path + "?view=worker&order=" + encodeURIComponent(order.id); setUrl(value);
-    void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(value, { margin: 2, width: 280, errorCorrectionLevel: "M", color: { dark: "#183868", light: "#ffffff" } })).then(setDataUrl).catch(() => setError("Não foi possível gerar o QR Code."));
-  }, [order.id]);
-  return <Modal title="Ficha do pedido" subtitle="MobiLog · rastreabilidade" onClose={onClose} className="qr-modal">
-    <div className="qr-sheet"><img src="/logo-senai-hub.webp" alt="SENAI Hub" className="qr-logo"/><strong className="qr-order-id">{order.id}</strong><h3>{order.name}</h3><p>{order.quantity} un. · {order.client}</p>{dataUrl ? <img src={dataUrl} alt={"QR Code do pedido " + order.id} className="qr-image"/> : <p>{error || "Preparando QR Code…"}</p>}<div className="qr-instruction"><QrCode size={18}/><span>{url ? "Escaneie para abrir este pedido no aplicativo." : "Use a versão publicada para acessar em outro aparelho."}</span></div><small>MobiLog · identificação do pedido</small></div>
-    <div className="button-row"><button className="btn secondary" disabled={!url} onClick={() => { void navigator.clipboard.writeText(url).then(() => onMessage("Link do pedido copiado.")).catch(() => onMessage("Copie o link no campo abaixo.")); }}><Copy size={16}/>Copiar link</button><button className="btn primary" onClick={() => window.print()}><Printer size={16}/>Imprimir ficha</button></div>
-    <label className="field qr-url">Link do pedido<input readOnly value={url} onFocus={e => e.currentTarget.select()}/></label>
+    if (account.mode === "demo" || window.location.protocol === "file:") { setError("A ficha pública e o QR por peça ficam disponíveis nos pedidos sincronizados do ambiente em nuvem. A demonstração local permanece neste navegador."); return; }
+    let alive = true;
+    const controller = new AbortController();
+    void fetch("/api/passports?order=" + encodeURIComponent(order.id), { cache: "no-store", headers: { "X-MobiLog-Workspace": account.workspaceId }, signal: controller.signal }).then(async response => {
+      if (!response.ok) throw new Error("Não foi possível consultar as identidades. Confira sua conexão e entre novamente se a sessão expirou.");
+      const result = await response.json() as { identities: PassportIdentity[] };
+      if (alive) { setIdentities(result.identities); if (!result.identities.length) setError("Sincronize o pedido para disponibilizar suas identidades."); }
+    }).catch(problem => { if (alive) setError(problem instanceof Error ? problem.message : "Não foi possível consultar a ficha."); });
+    return () => { alive = false; controller.abort(); };
+  }, [account.mode, account.workspaceId, order.id]);
+  const identity = identities.find(item => item.unit_number === unit);
+  useEffect(() => {
+    setDataUrl(""); setUrl("");
+    if (!identity) return;
+    let alive = true;
+    const value = window.location.origin + passportHref(identity.id);
+    setUrl(value);
+    void import("qrcode").then(({ default: QRCode }) => QRCode.toDataURL(value, { margin: 4, width: 320, errorCorrectionLevel: "M", color: { dark: "#183868", light: "#ffffff" } })).then(image => { if (alive) { setDataUrl(image); setError(""); } }).catch(() => { if (alive) setError("Não foi possível gerar o QR Code."); });
+    return () => { alive = false; };
+  }, [identity?.id]);
+  return <Modal title="Identidade da peça" subtitle="MobiLog · rastreabilidade do produto" onClose={onClose} className="qr-modal">
+    {order.quantity > 1 && <label className="field qr-unit">Escolha a peça para imprimir<select value={unit} onChange={event => setUnit(Number(event.target.value))}>{Array.from({ length: order.quantity }, (_, i) => <option key={i} value={i + 1}>Peça {i + 1} de {order.quantity}</option>)}</select></label>}
+    <div className="qr-sheet"><img src="/logo-senai-hub.webp" alt="SENAI Hub" className="qr-logo"/><strong className="qr-order-id">{order.id} · {String(unit).padStart(3, "0")}</strong><h3>{order.name}</h3><p>Peça {unit} de {order.quantity}</p>{dataUrl ? <img src={dataUrl} alt={"QR Code da peça " + unit + " do pedido " + order.id} className="qr-image"/> : <p role="status">{error || "Preparando QR Code…"}</p>}<div className="qr-instruction"><QrCode size={18}/><span>Escaneie para conhecer os materiais, as datas e o histórico desta peça. A consulta abre sem login.</span></div><small>{identity ? passportSerial(identity.id, order.id, unit) : "MobiLog · identidade do produto"}</small></div>
+    <div className="button-row">{url && <a className="btn secondary" href={url} target="_blank" rel="noopener noreferrer"><ArrowUpRight size={16}/>Abrir ficha</a>}<button className="btn secondary" disabled={!url} onClick={() => { void navigator.clipboard.writeText(url).then(() => onMessage("Link da peça copiado.")).catch(() => onMessage("Copie o link no campo abaixo.")); }}><Copy size={16}/>Copiar link</button><button className="btn primary" disabled={!dataUrl} onClick={() => window.print()}><Printer size={16}/>Imprimir etiqueta</button></div>
+    {onEdit && <button className="btn secondary full qr-edit" onClick={onEdit}><BookOpen size={16}/>Completar dados do produto</button>}
+    <label className="field qr-url">Link público desta peça<input readOnly value={url} onFocus={e => e.currentTarget.select()}/></label>
   </Modal>;
 }
 export function Connection({ status, pending, compact = false }: { status: string; pending: number; compact?: boolean }) {

@@ -24,6 +24,13 @@ export const STAGES = [
 
 export type Material = { id: string; name: string; specification: string; unit: string; stock: number; minimum: number };
 export type RecipeItem = { materialId: string; quantity: number; consumed?: boolean };
+export type ProductDetails = {
+  description: string; woodType: string; materialOrigin: string; dimensions: string;
+  finish: string; construction: string; careInstructions: string;
+};
+export const EMPTY_PRODUCT_DETAILS: ProductDetails = {
+  description: "", woodType: "", materialOrigin: "", dimensions: "", finish: "", construction: "", careInstructions: "",
+};
 export type StageRun = {
   stageId: string; assignedTo: string; status: StageStatus;
   startedAt: string | null; completedAt: string | null; pausedAt: string | null;
@@ -34,7 +41,7 @@ export type Order = {
   id: string; name: string; client: string; type: FurnitureType; quantity: number;
   due: string; priority: "normal" | "alta"; createdAt: string; notes: string;
   stages: StageRun[]; materials: RecipeItem[]; materialState: "unreserved" | "reserved" | "consumed";
-  reworks: number;
+  reworks: number; productDetails?: ProductDetails;
 };
 export type HistoryEvent = {
   id: string; actorId: string; orderId: string | null; stageId: string | null;
@@ -46,7 +53,8 @@ export type Command = {
   eventId: string; kind: string; actorId: string; orderId?: string; stageId?: string;
   reason?: string; checks?: boolean[]; completedQuantity?: number; targetUserId?: string;
   materialId?: string; quantity?: number;
-  order?: { name: string; client: string; type: FurnitureType; quantity: number; due: string; priority: "normal" | "alta"; notes: string; materials?: RecipeItem[] };
+  productDetails?: ProductDetails;
+  order?: { name: string; client: string; type: FurnitureType; quantity: number; due: string; priority: "normal" | "alta"; notes: string; materials?: RecipeItem[]; productDetails?: ProductDetails };
 };
 
 export const RECIPES: Record<FurnitureType, RecipeItem[]> = {
@@ -102,6 +110,18 @@ function checkDate(value: unknown) {
   if (isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) throw new ProductionError("Informe uma data de entrega válida.");
   return value;
 }
+export function parseProductDetails(value: unknown): ProductDetails {
+  if (value === undefined) return { ...EMPTY_PRODUCT_DETAILS };
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProductionError("Confira os dados da ficha do produto.");
+  const source = value as Record<string, unknown>;
+  const result = { ...EMPTY_PRODUCT_DETAILS };
+  for (const key of Object.keys(result) as (keyof ProductDetails)[]) {
+    const field = source[key] ?? "";
+    if (typeof field !== "string" || field.trim().length > (key === "description" || key === "careInstructions" ? 800 : 200)) throw new ProductionError("Confira o campo da ficha: " + key + ".");
+    result[key] = field.trim();
+  }
+  return result;
+}
 
 export function applyCommand(current: ProductionState, command: Command, now = new Date().toISOString(), identity?: Identity): { state: ProductionState; duplicate: boolean } {
   if (!command || typeof command !== "object") throw new ProductionError("Solicitação inválida.", 400);
@@ -137,6 +157,7 @@ export function applyCommand(current: ProductionState, command: Command, now = n
       id: orderId, name: text(input.name, "nome do móvel", 2, 100), client: text(input.client, "destino", 2, 100),
       type: input.type, quantity, due: checkDate(input.due), priority: input.priority === "alta" ? "alta" : "normal",
       notes: typeof input.notes === "string" ? input.notes.trim().slice(0, 600) : "", createdAt: now,
+      productDetails: parseProductDetails(input.productDetails),
       materials: materials.map(m => ({ materialId: m.materialId, quantity: m.quantity, consumed: false })), materialState: "unreserved", reworks: 0,
       stages: STAGES.map((stage, index) => ({
         stageId: stage.id, assignedTo: stage.owner, status: index === 0 ? "ready" : "waiting",
@@ -144,6 +165,13 @@ export function applyCommand(current: ProductionState, command: Command, now = n
       })),
     });
     title = "Pedido cadastrado"; detail = input.name + " · " + quantity + " un.";
+  } else if (command.kind === "update-product-details") {
+    if (person.id !== "gestao") throw new ProductionError("A Logística preenche a ficha do produto.", 403);
+    const order = state.orders.find(item => item.id === command.orderId);
+    if (!order) throw new ProductionError("Pedido não encontrado.", 404);
+    order.productDetails = parseProductDetails(command.productDetails);
+    eventStageId = null;
+    title = "Ficha do produto atualizada"; detail = order.name;
   } else if (command.kind === "stock-receive") {
     if (person.id !== "gestao") throw new ProductionError("Use o perfil da Logística para receber materiais.", 403);
     const material = state.materials.find(item => item.id === command.materialId);

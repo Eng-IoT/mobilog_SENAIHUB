@@ -50,7 +50,7 @@ Use dois celulares e um computador, com contas distintas. Registre apenas nomes 
 | A15 | Pedir material acima do disponível no planejamento | Sem conclusão nem saldo negativo; receber material permite nova tentativa |  |
 | A16 | Desligar rede com atividade aberta e registrar | Tentativa pendente no aparelho; outro painel não avança |  |
 | A17 | Ligar rede e manter a tela aberta | Tentativa aceita ou motivo de recusa legível; reenvio não duplica consumo |  |
-| A18 | Abrir QR do pedido em outro aparelho | Mesmo pedido após login na equipe correta |  |
+| A18 | Abrir QR do pedido em outro aparelho | Ficha pública da unidade sem login; materiais e histórico corretos |  |
 | A19 | Abrir duas equipes em duas abas e trocar seleção | Cada aba confirma somente na equipe que apresenta |  |
 | A20 | Suspender aluno e tentar nova operação | Operação futura bloqueada no servidor |  |
 | A21 | Exportar CSV e Cópia JSON | Arquivos abrem; equipe e registros conferem |  |
