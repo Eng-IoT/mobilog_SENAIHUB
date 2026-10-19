@@ -1,5 +1,5 @@
 /* SENAI Hub: defined edges, generous corners and clearer hierarchy. */
-:root { --line: #dce3ec; --radius: 18px; --background: #f2f5f9; }
+:root { --line: #dce3ec; --radius: 18px; --background: #f2f5f9; --neon-orange: #ff741e; --neon-edge: #ef651b; --neon-glow: 0 0 0 1px #ff741e26, 0 0 13px #ff741e24; }
 .sidebar { border-right: 1px solid #314b70; box-shadow: 8px 0 32px #142d4c08; }
 .sidebar-logo { padding: 14px 26px; }
 .sidebar .nav-item { border: 1px solid transparent; border-radius: 11px; }
@@ -57,6 +57,51 @@
 .auth-card { border-color: #d2deed; border-radius: 22px; box-shadow: 0 16px 65px #193b7410, 0 1px 3px #193b7408; }
 .tracking-launch { margin: 18px 0 25px; min-height: 47px; font-size: 13px; }
 .tracking-launch svg:last-child { margin-left: auto; }
+
+/* Orange neon is a static accent; status text and checks keep their colors. */
+.app-shell .panel, .app-shell .stat-card, .app-shell .kanban-card,
+.app-shell .worker-order, .app-shell .team-card, .app-shell .connected-card,
+.app-shell .account-strip, .app-shell .expo-card,
+.auth-shell .auth-card, .onboarding-box, .modal {
+  border-color: var(--neon-orange);
+  box-shadow: var(--neon-glow), 0 7px 24px #12345b05, inset 0 0 0 1px #ff741e0a;
+}
+.app-shell .btn, .app-shell .icon-btn, .app-shell .search-box,
+.app-shell .select-filter select, .app-shell .field input,
+.app-shell .field select, .app-shell .field textarea,
+.auth-shell .btn, .auth-shell .field input, .modal .btn,
+.modal .field input, .modal .field select, .modal .field textarea {
+  border: 1px solid var(--neon-edge);
+  box-shadow: 0 0 7px #ff741e1f, inset 0 0 0 1px #ff741e0a;
+}
+.app-shell .btn:hover:not(:disabled), .app-shell .icon-btn:hover,
+.auth-shell .btn:hover:not(:disabled), .modal .btn:hover:not(:disabled) {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e40, 0 0 16px #ff741e42;
+}
+.app-shell .sidebar { border-right-color: var(--neon-orange); box-shadow: 3px 0 17px #ff741e14; }
+.app-shell .sidebar-logo, .app-shell .topbar { border-bottom-color: #ff741e80; }
+.app-shell .sidebar .nav-item { border-color: #ff741e59; }
+.app-shell .sidebar .nav-item.active { border-color: var(--neon-orange); box-shadow: 0 0 12px #ff741e3d, inset 0 0 12px #ff741e0d; }
+.app-shell .sidebar .nav-item.active::before { background: var(--neon-orange); box-shadow: 0 0 9px #ff741e99; }
+.app-shell .stat-icon, .app-shell .furniture-thumb,
+.app-shell .stage-overview-icon, .app-shell .worker-order-thumb,
+.app-shell .badge, .app-shell .count-badge {
+  border: 1px solid #ff741e99;
+  box-shadow: 0 0 7px #ff741e1a;
+}
+.app-shell .panel-heading, .modal-heading { border-bottom-color: #ff741e47; }
+.app-shell .stat-card:hover, .app-shell .kanban-card:hover {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e40, 0 0 20px #ff741e33;
+}
+.app-shell .worker-order.selected { border-color: var(--neon-orange); box-shadow: inset 3px 0 var(--neon-orange), 0 0 12px #ff741e38; }
+.app-shell :is(button, a, input, select, textarea):focus-visible,
+.auth-shell :is(button, a, input, select, textarea):focus-visible,
+.modal :is(button, a, input, select, textarea):focus-visible {
+  outline-color: #c94b12;
+  box-shadow: 0 0 0 1px #ff741e66, 0 0 16px #ff741e4d;
+}
 
 @media (max-width: 1100px) {
   .stat-card { padding: 17px; }

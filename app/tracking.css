@@ -208,3 +208,58 @@
   .tracking-offline { align-items: flex-start; padding: 12px; font-size: 11px; flex-wrap: wrap; }
   .tracking-offline button { margin-left: 29px; }
 }
+
+/* Neon contours for the presentation, including its small controls and flow. */
+.tracking-page .tracking-header { border-bottom-color: #ff741e70; }
+.tracking-page .tracking-logo, .tracking-page .tracking-control,
+.tracking-page .tracking-select select, .tracking-page .viewer-caption button {
+  border-color: var(--neon-edge);
+  box-shadow: var(--neon-glow), inset 0 1px 0 #ffffff80;
+}
+.tracking-page .tracking-control:hover, .tracking-page .viewer-caption button:hover {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e59, 0 0 18px #ff741e4d;
+}
+.tracking-page .tracking-showcase {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e59, 0 0 19px #ff741e47, inset 0 0 18px #ff741e24, inset 0 1px 0 #ffffffb3;
+}
+.tracking-page .tracking-showcase::before { border-color: #ffb279d9; box-shadow: inset 0 0 9px #ff741e4d, 0 0 7px #ff741e38; }
+.tracking-page .tracking-showcase-tag, .tracking-page .viewer-caption > span {
+  border: 1px solid var(--neon-edge);
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: #fff4e866;
+  box-shadow: 0 0 9px #ff741e2e, inset 0 1px 0 #ffffff59;
+}
+.tracking-page .tracking-stage-card {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e59, 0 0 15px #ff741e40, 0 0 34px #ff741e1f, inset 0 0 16px #ff741e05;
+}
+.tracking-page .tracking-stage-card::before { background: var(--neon-orange); box-shadow: 0 0 12px #ff741e99; }
+.tracking-page .tracking-stage-status {
+  border: 1px solid var(--neon-edge);
+  border-radius: 999px;
+  padding: 3px 9px;
+  box-shadow: 0 0 8px #ff741e26;
+}
+.tracking-page .tracking-sector-icon {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 1px #ff741e26, 0 0 12px #ff741e38, inset 0 0 10px #ff741e0d;
+}
+.tracking-page .tracking-stage-aside { border-color: #ff741e70; }
+.tracking-page .tracking-journey li .tracking-step-dot {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 4px #fff, 0 0 0 5px #ff741e66, 0 0 12px #ff741e38;
+}
+.tracking-page .tracking-journey li.current .tracking-step-dot {
+  border-color: var(--neon-orange);
+  box-shadow: 0 0 0 4px #fff, 0 0 0 6px var(--neon-orange), 0 0 21px #ff741e80;
+}
+.tracking-page .tracking-journey li.current strong { color: #b8440e; }
+.tracking-page .tracking-journey li .tracking-step-line {
+  background: linear-gradient(90deg, #ff741e80, #ff741ed9, #ff741e80);
+  box-shadow: 0 0 6px #ff741e59;
+}
+.tracking-page .tracking-progress-caption { border-top-color: #ff741e59; }
+.tracking-page :is(button, a, select):focus-visible { outline-color: #c94b12; box-shadow: 0 0 0 1px #ff741e66, 0 0 18px #ff741e66; }
