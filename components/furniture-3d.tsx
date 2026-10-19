@@ -17,12 +17,12 @@ function woodTexture() {
   canvas.width = 512; canvas.height = 512;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  ctx.fillStyle = "#c69b6a";
+  ctx.fillStyle = "#a6602d";
   ctx.fillRect(0, 0, 512, 512);
   for (let line = 0; line < 280; line++) {
     const y = line * 1.86;
     ctx.beginPath();
-    ctx.strokeStyle = `rgba(${line % 3 ? "109,70,35" : "255,224,174"},${0.06 + (line % 7) * 0.013})`;
+    ctx.strokeStyle = `rgba(${line % 3 ? "77,35,14" : "240,180,109"},${0.09 + (line % 7) * 0.016})`;
     ctx.lineWidth = line % 9 === 0 ? 2 : 0.65;
     ctx.moveTo(0, y);
     for (let x = 0; x <= 512; x += 12) ctx.lineTo(x, y + Math.sin(x / 55 + line * 0.72) * (1 + line % 6));
@@ -53,9 +53,9 @@ export default function Furniture3D({ type }: { type: FurnitureType }) {
     const scene = new Scene();
     const camera = new PerspectiveCamera(34, 1, 0.1, 50);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-    renderer.setClearColor(new Color("#f3efe8"), 0);
+    renderer.setClearColor(new Color("#f26532"), 0);
     renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 0.98;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = PCFSoftShadowMap;
     const canvas = renderer.domElement;
@@ -64,9 +64,9 @@ export default function Furniture3D({ type }: { type: FurnitureType }) {
 
     const texture = woodTexture();
     if (texture) { texture.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); textures.push(texture); }
-    const wood = new MeshStandardMaterial({ map: texture, color: texture ? "#ffffff" : "#b88b58", roughness: 0.57 });
-    const edge = new MeshStandardMaterial({ map: texture, color: "#af8b65", roughness: 0.65 });
-    const hardware = new MeshStandardMaterial({ color: "#404b57", metalness: 0.72, roughness: 0.3 });
+    const wood = new MeshStandardMaterial({ map: texture, color: texture ? "#f0cfaa" : "#995020", roughness: 0.46 });
+    const edge = new MeshStandardMaterial({ map: texture, color: "#b47a43", roughness: 0.55 });
+    const hardware = new MeshStandardMaterial({ color: "#293747", metalness: 0.72, roughness: 0.3 });
     const model = createFurnitureModel(type, wood, edge, hardware);
     const bounds = new Box3().setFromObject(model);
     const size = bounds.getSize(new Vector3());
@@ -77,13 +77,13 @@ export default function Furniture3D({ type }: { type: FurnitureType }) {
     scene.add(model);
 
     const baseRadius = Math.hypot(size.x, size.z) * 0.57;
-    const baseMaterial = new MeshStandardMaterial({ color: "#e7e0d5", roughness: 0.95 });
+    const baseMaterial = new MeshStandardMaterial({ color: "#edc8a2", roughness: 0.4, metalness: 0.12, transparent: true, opacity: 0.7, depthWrite: false });
     const base = new Mesh(new CylinderGeometry(baseRadius, baseRadius, 0.055, 80), baseMaterial);
     base.position.y = -size.y / 2 - 0.04;
     base.receiveShadow = true;
     scene.add(base);
-    scene.add(new HemisphereLight("#fff8ed", "#778ba0", 2.5));
-    const key = new DirectionalLight("#fff1da", 3.2);
+    scene.add(new HemisphereLight("#fff8ed", "#778ba0", 2));
+    const key = new DirectionalLight("#fff1da", 2.7);
     key.position.set(3, 6, 5);
     key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
@@ -92,7 +92,7 @@ export default function Furniture3D({ type }: { type: FurnitureType }) {
     key.shadow.normalBias = 0.035;
     key.shadow.bias = -0.0002;
     scene.add(key);
-    const fill = new DirectionalLight("#dceaff", 1.4);
+    const fill = new DirectionalLight("#dceaff", 1.15);
     fill.position.set(-4, 3, -3);
     scene.add(fill);
 
