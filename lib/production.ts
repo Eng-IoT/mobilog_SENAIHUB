@@ -47,12 +47,19 @@ export type HistoryEvent = {
   id: string; actorId: string; orderId: string | null; stageId: string | null;
   kind: string; title: string; detail: string; at: string; fingerprint: string; performer?: { userId: string; name: string };
 };
-export type ProductionState = { orders: Order[]; materials: Material[]; events: HistoryEvent[] };
+export type ProductionData = { orders: Order[]; materials: Material[]; events: HistoryEvent[] };
+export type RecoverySnapshot = { data: ProductionData; at: string; action: string };
+export type ProductionState = ProductionData & {
+  generation?: number; orderSequence?: number; recovery?: RecoverySnapshot;
+  maintenanceReceipts?: HistoryEvent[];
+};
+export type MaintenanceKind = "delete-order" | "reset-production" | "restore-production";
 export type Snapshot = { state: ProductionState; revision: number; updatedAt: string };
 export type Command = {
   eventId: string; kind: string; actorId: string; orderId?: string; stageId?: string;
   reason?: string; checks?: boolean[]; completedQuantity?: number; targetUserId?: string;
   materialId?: string; quantity?: number;
+  generation?: number; expectedRevision?: number; confirmation?: string; resetStock?: boolean;
   productDetails?: ProductDetails;
   order?: { name: string; client: string; type: FurnitureType; quantity: number; due: string; priority: "normal" | "alta"; notes: string; materials?: RecipeItem[]; productDetails?: ProductDetails };
 };
@@ -71,6 +78,21 @@ export const TYPES: { value: FurnitureType; label: string }[] = [
 export class ProductionError extends Error {
   status: number;
   constructor(message: string, status = 422) { super(message); this.name = "ProductionError"; this.status = status; }
+}
+export function isMaintenanceCommand(kind: string): kind is MaintenanceKind {
+  return ["delete-order", "reset-production", "restore-production"].includes(kind);
+}
+export function validateMaintenanceRevision(command: Command, revision: number) {
+  if (isMaintenanceCommand(command.kind) && (!Number.isSafeInteger(command.expectedRevision) || command.expectedRevision !== revision)) {
+    throw new ProductionError("A produção mudou em outro aparelho. Confira os dados e abra a confirmação novamente.", 409);
+  }
+}
+function lastOrderNumber(state: ProductionState) {
+  const ids = [...state.orders.map(o => o.id), ...state.events.map(e => e.orderId || ""), ...(state.recovery?.data.orders.map(o => o.id) || [])];
+  return ids.reduce((max, id) => Math.max(max, /^OP-\d+$/.test(id) ? Number(id.slice(3)) : 0), state.orderSequence || 0);
+}
+function saveRecovery(state: ProductionState, now: string, action: string): RecoverySnapshot {
+  return { data: structuredClone({ orders: state.orders, materials: state.materials, events: state.events }), at: now, action };
 }
 export function todayInAcre(now = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Rio_Branco", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
@@ -129,22 +151,55 @@ export function applyCommand(current: ProductionState, command: Command, now = n
   const person = TEAM.find(member => member.id === command.actorId);
   if (!person) throw new ProductionError("Escolha um perfil de demonstração válido.", 403);
   const fingerprint = JSON.stringify(command);
-  const previous = current.events.find(event => event.id === command.eventId);
+  const previous = current.events.find(event => event.id === command.eventId) || current.maintenanceReceipts?.find(event => event.id === command.eventId);
   if (previous) {
     if (identity && previous.performer?.userId !== identity.userId) throw new ProductionError("O registro pertence a outra conta.", 403);
     if (previous.fingerprint !== fingerprint) throw new ProductionError("Esse registro já foi utilizado em outra ação.", 409);
     return { state: current, duplicate: true };
   }
   if (identity) authorizeCommand(current, command, identity);
+  if ((command.generation ?? 0) !== (current.generation ?? 0)) throw new ProductionError("Esta tentativa é anterior ao último reset ou restauração. Atualize o aplicativo e registre novamente somente atividades atuais.", 410);
   const state: ProductionState = structuredClone(current);
   let title = ""; let detail = ""; let orderId: string | null = command.orderId || null;
   let eventStageId: string | null = command.stageId || null;
-  if (command.kind === "create-order") {
+  if (isMaintenanceCommand(command.kind)) {
+    if (person.id !== "gestao") throw new ProductionError("Use o acesso da Logística ou do docente para esta operação.", 403);
+    const expected = command.kind === "delete-order" ? command.orderId : command.kind === "reset-production" ? "LIMPAR" : "RESTAURAR";
+    if (!expected || command.confirmation !== expected) throw new ProductionError("Digite exatamente a confirmação solicitada.");
+    state.orderSequence = lastOrderNumber(current);
+    const recovery = saveRecovery(current, now, command.kind === "delete-order" ? "Exclusão de " + command.orderId : command.kind === "reset-production" ? "Limpeza da produção" : "Restauração da produção");
+    if (command.kind === "delete-order") {
+      const order = state.orders.find(o => o.id === command.orderId);
+      if (!order) throw new ProductionError("Este produto já não está na produção. Atualize o painel.", 404);
+      state.orders = state.orders.filter(o => o.id !== order.id);
+      state.events = state.events.filter(e => e.orderId !== order.id);
+      title = "Produto excluído"; detail = order.id + " · " + order.name;
+    } else if (command.kind === "reset-production") {
+      if (typeof command.resetStock !== "boolean") throw new ProductionError("Escolha se os saldos de materiais serão zerados.");
+      if (!current.orders.length && !current.events.length && (!command.resetStock || current.materials.every(m => m.stock === 0))) throw new ProductionError("A produção já está limpa com a opção escolhida.");
+      state.orders = []; state.events = [];
+      if (command.resetStock) state.materials = state.materials.map(m => ({ ...m, stock: 0 }));
+      state.generation = (current.generation || 0) + 1;
+      title = "Produção limpa"; detail = command.resetStock ? "Pedidos, histórico e saldos zerados." : "Pedidos e histórico limpos; saldos mantidos.";
+    } else {
+      if (!current.recovery) throw new ProductionError("Não há uma limpeza anterior disponível para restaurar.");
+      const restored = structuredClone(current.recovery.data);
+      state.orders = restored.orders; state.materials = restored.materials; state.events = restored.events;
+      state.generation = (current.generation || 0) + 1;
+      title = "Produção restaurada"; detail = "Dados recuperados da última limpeza.";
+    }
+    state.recovery = recovery;
+    const receipt: HistoryEvent = { id: command.eventId, actorId: command.actorId, orderId: null, stageId: null, kind: command.kind, title, detail, at: now, fingerprint, ...(identity ? { performer: { userId: identity.userId, name: identity.name } } : {}) };
+    state.maintenanceReceipts = [...(current.maintenanceReceipts || []), receipt].slice(-20);
+    if (command.kind === "delete-order") state.events.push(receipt);
+    return { state, duplicate: false };
+  } else if (command.kind === "create-order") {
     if (person.id !== "gestao") throw new ProductionError("Use o perfil da Logística para cadastrar pedidos.", 403);
     const input = command.order;
     if (!input || !TYPES.some(type => type.value === input.type)) throw new ProductionError("Selecione um tipo de móvel.");
     const quantity = number(input.quantity, "o pedido", 50, true);
-    const idNumber = state.orders.reduce((max, order) => Math.max(max, Number(order.id.split("-")[1]) || 0), 0) + 1;
+    const idNumber = lastOrderNumber(state) + 1;
+    state.orderSequence = idNumber;
     orderId = "OP-" + String(idNumber).padStart(3, "0");
     const materials = input.materials || recipe(input.type, quantity);
     if (!Array.isArray(materials) || materials.length < 1 || materials.length > state.materials.length) throw new ProductionError("Confira a lista de materiais.");

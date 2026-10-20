@@ -3,6 +3,7 @@ import "./globals.css";
 import "./refinements.css";
 import "./tracking.css";
 import "./passport.css";
+import "./maintenance.css";
 
 export const metadata: Metadata = {
   title: "MobiLog · SENAI Hub",

@@ -8,24 +8,24 @@ Ferramenta educacional para os alunos de Logística acompanharem pedidos, materi
 ## Comece por aqui
 
 - **Treinar agora:** abra `dist/MobiLog-Demonstracao.html` no navegador de um computador. O arquivo usa dados fictícios e não precisa de instalação ou internet. Cada navegador tem sua própria simulação. O ambiente publicado também oferece `/demo`.
-- **Publicar com contas e sincronização:** siga [docs/IMPLANTACAO.md](docs/IMPLANTACAO.md). A estrutura do banco exclusivo já está instalada; faltam a chave privada no ambiente e a importação na sua conta da Vercel.
+- **Acessar com contas e sincronização:** [MobiLog publicado](https://mobilog-senaihub.vercel.app). Para uma nova instalação, siga [docs/IMPLANTACAO.md](docs/IMPLANTACAO.md).
 - **Manual para alunos e docentes no evento:** [PDF](docs/MobiLog-Manual-Alunos-e-Docentes-Mundo-SENAI.pdf) e [Word editável](docs/MobiLog-Manual-Alunos-e-Docentes-Mundo-SENAI.docx), com TV, notebook, três marceneiros e peça pronta.
 - **Preparar a turma:** leia [docs/TREINAMENTO_ATE_26_10_2026.md](docs/TREINAMENTO_ATE_26_10_2026.md) e [docs/GUIA_ALUNOS.md](docs/GUIA_ALUNOS.md).
 
-## Situação da entrega · atualização de 17/10/2026
+## Situação da entrega · atualização de 20/10/2026
 
 | Item | Situação verificada |
 | --- | --- |
 | Código React/Next.js para GitHub e Vercel | Preparado; compilação de produção aprovada |
 | Banco exclusivo Supabase | Criado em São Paulo; estrutura, RLS e funções instaladas |
 | Segurança do esquema remoto | Verificação automática sem apontamentos em 16/10/2026 |
-| Regras e permissões | 27 testes automatizados aprovados, incluindo PostgreSQL local isolado |
+| Regras e permissões | 53 testes automatizados aprovados, incluindo PostgreSQL local isolado, rastreabilidade, exclusão, limpeza e recuperação |
 | Demonstração em arquivo único | Gerada com interface, marca e recursos incorporados |
-| Publicação na Vercel | Não realizada: a conexão retornou 403 por falta de acesso ao escopo da conta |
-| Login e sincronização em aparelhos reais | A validar depois da configuração da chave privada e publicação |
+| Publicação na Vercel | Aplicativo publicado; atualizações da branch `main` seguem a integração com o GitHub |
+| Login e sincronização em aparelhos reais | Fluxo validado pela equipe; repetir o ensaio antes do evento |
 | Repositório GitHub | Código e manuais disponíveis em [Eng-IoT/mobilog_SENAIHUB](https://github.com/Eng-IoT/mobilog_SENAIHUB), na branch `main`. |
 
-Não há senhas prontas nem conta compartilhada. O pacote não contém a chave privada do Supabase. Os testes locais e a compilação não substituem o ensaio com os celulares da turma.
+As contas são administradas pelo docente no aplicativo. O pacote não contém senhas de acesso nem a chave privada do Supabase. Os testes locais e a compilação não substituem o ensaio com os celulares da turma.
 
 ## Funcionalidades
 
@@ -38,6 +38,7 @@ Não há senhas prontas nem conta compartilhada. O pacote não contém a chave p
 - Histórico com autoria validada pelo servidor; reenvio da mesma tentativa não repete a baixa de material.
 - Pendências locais sem conexão, reenvio com o aplicativo aberto e atualização por Realtime com consulta de apoio a cada 6 segundos.
 - QR exclusivo por peça, ficha pública de rastreabilidade sem login, relatório CSV e cópia JSON do estado.
+- Exclusão de pedidos pela Logística ou docente; limpeza e restauração da última cópia pelo docente, com confirmação digitada.
 - PWA para a tela inicial, layout para smartphone e demonstração local separada dos dados em nuvem.
 
 ## Apresentação na TV
@@ -47,6 +48,10 @@ Em **Pedidos**, abra o móvel e selecione **Acompanhar na TV**. A apresentação
 ## Identidade de cada peça
 
 Em **Pedidos → Ficha QR**, selecione a unidade e imprima a etiqueta. O visitante abre uma ficha com materiais, características, datas, tempos e histórico, sem login. A Logística e o docente podem usar **Completar dados do produto** para informar madeira, origem, medidas, acabamento e cuidados. Veja o [guia de identidade do produto](docs/IDENTIDADE_DO_PRODUTO.md). Etiquetas do modelo anterior precisam ser reimpressas.
+
+## Exclusão e nova rodada de treinamento
+
+Em **Pedidos**, a Logística e o docente podem usar a lixeira para excluir todas as unidades de um pedido, digitando seu código. O docente também encontra **Limpar produção** no topo do Painel ou de Pedidos, com a opção de manter ou zerar os saldos de materiais. Contas, funções e catálogo são preservados. **Restaurar dados** recupera o estado anterior à última exclusão, limpeza ou restauração e substitui toda a produção atual da equipe. Veja o [guia de exclusão e reset](docs/EXCLUSAO_E_RESET.md).
 
 ## Tecnologia
 
@@ -97,6 +102,7 @@ npm run demo:build
 | `docs/TREINAMENTO_ATE_26_10_2026.md` | Cronograma, evidências e avaliação sugerida |
 | `docs/ACEITE_E_TESTES.md` | Resultados técnicos e ensaio em aparelhos reais |
 | `docs/ROTEIRO_APRESENTACAO.md` | Falas e demonstração para o público |
+| `docs/EXCLUSAO_E_RESET.md` | Exclusão, limpeza da produção, estoque e restauração da última cópia |
 | `docs/ARQUITETURA.md` | Modelo de dados e limites desta edição |
 
 ## Limites desta edição
